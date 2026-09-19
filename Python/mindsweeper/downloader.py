@@ -1,6 +1,7 @@
 from pathlib import Path
 import requests
-from Python.mindsweeper.book import Book
+from Python.mindsweeper.model.book import Book
+
 START_MARKER = "*** START OF THE PROJECT GUTENBERG EBOOK"
 END_MARKER = "*** END OF THE PROJECT GUTENBERG EBOOK"
 
