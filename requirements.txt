@@ -1,2 +1,0 @@
-requests>=2.31.0 #Realizar peticiones HTTP y descargar el projecto de libros
-pymongo>=4.6.0 #Interactua con DB
