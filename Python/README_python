@@ -1,13 +1,2 @@
-Python tips:
-Enlace para acceder al localhost de ActiveMQ: http://localhost:8161/admin/
 
---REVISION DE MQ PARA PYTHON--
-Si su activeMQ no realiza la conexion acceda a esta direccion: conf/activemq.xml y abra dicho documento.
-Entorno a la linea 185 vera algo como:
-<!-- <transportConnector name="stomp" uri="stomp://0.0.0.0:61613?maximumConnections=1000&amp;wireFormat.maxFrameSize=10485760"/> -->
-
-Debe eliminar eso y tener esto:
-<transportConnector name="stomp" uri="stomp://0.0.0.0:61613?maximumConnections=1000&amp;wireFormat.maxFrameSize=10485760"/>
-
-El motivo de esto es porque para conectarse con python esta comentado por defecto.
 
