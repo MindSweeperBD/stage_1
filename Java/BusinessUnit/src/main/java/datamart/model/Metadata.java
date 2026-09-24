@@ -1,4 +1,4 @@
-package datamart;
+package datamart.model;
 
 public record Metadata(int bookId, String title, String author, String language, String bodyPath) {
 

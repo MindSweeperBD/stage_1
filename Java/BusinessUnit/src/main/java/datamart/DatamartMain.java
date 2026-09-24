@@ -1,5 +1,7 @@
 package datamart;
 
+import datamart.control.*;
+import datamart.model.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,14 +15,19 @@ public class DatamartMain {
 
     private static final Logger log = LoggerFactory.getLogger(DatamartMain.class);
 
-    private static final Path datalakePath = Path.of("batch_datalake");;
+    private static final Path datalakePath = Path.of("batch_datalake");
     private static final Path datamartPath = Path.of("datamart");
     private static final Path metadataDatabase = datamartPath.resolve("metadata.db");
-    private static final Path invertedIndexFile = datamartPath.resolve("inverted_index.json");
+    private static final Path monolithicIndexDirectory = datamartPath.resolve("inverted_index.json");
+    private static final Path hierarchicalIndexDirectory = datamartPath.resolve("inverted_index");
 
     private static final DatalakeReader reader = new DatalakeReader(datalakePath);
     private static final MetadataDatabase database = new MetadataDatabase(metadataDatabase.toString());
-    private static final InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder();
+
+    private static final MonolithicInvertedIndexBuilder monolithicIndexBuilder =
+            new MonolithicInvertedIndexBuilder();
+    private static final HierarchicalInvertedIndexBuilder hierarchicalIndexBuilder =
+            new HierarchicalInvertedIndexBuilder();
 
     public static void main(String[] args) {
         try {
@@ -35,33 +42,61 @@ public class DatamartMain {
 
         Files.createDirectories(datamartPath);
         manageDatabase(books);
-        manageInvertedIndex(books);
+
+        manageInvertedIndexes(books);
 
         log.info("Datamart built correctly");
     }
 
     private static List<Metadata> readDatalake() throws IOException {
-        log.trace("Reading datalake...");
+        log.info("Reading datalake...");
         List<Metadata> books = reader.readMetadata();
 
-        log.trace("Found books: {}", books.size());
+        log.info("Found books: {}", books.size());
         return books;
     }
 
     private static void manageDatabase(List<Metadata> books) throws SQLException {
-        log.trace("Creating the metadata database...");
+        log.info("Creating the metadata database...");
         database.createDatabase();
 
         database.insertMetadata(books);
-        log.trace("datamart.Metadata saved in: {}", metadataDatabase);
+        log.info("datamart.model.Metadata saved in: {}", metadataDatabase);
     }
 
-    private static void manageInvertedIndex(List<Metadata> books) throws IOException {
-        log.trace("Building inverted index...");
-        indexBuilder.processBooks(books);
+    private static void manageInvertedIndexes(List<Metadata> books) throws IOException {
+        log.info("Building inverted indexes...");
+        manageMonolithicInvertedIndex(books);
+        manageMongoInvertedIndex(books);
+        manageHierarchicalInvertedIndex(books);
+    }
 
-        indexBuilder.saveInvertedIndex(invertedIndexFile);
-        log.trace("Inverted index saved in: {}", invertedIndexFile);
-        log.trace("Number of Terms: {}", indexBuilder.getNumberOfTerms());
+    private static void manageMonolithicInvertedIndex(List<Metadata> books) throws IOException {
+        monolithicIndexBuilder.processBooks(books);
+
+        monolithicIndexBuilder.saveInvertedIndex(monolithicIndexDirectory);
+        log.info("Inverted indexes saved in: {}", monolithicIndexDirectory);
+        log.info("Number of Terms: {}", monolithicIndexBuilder.getNumberOfTerms());
+    }
+
+    private static void manageMongoInvertedIndex(List<Metadata> books) throws IOException {
+        MongoInvertedIndexBuilder mongoIndexBuilder =
+                new MongoInvertedIndexBuilder(
+                        "mongodb://localhost:27017"
+                );
+
+        try {
+            mongoIndexBuilder.processBooks(books);
+        } finally {
+            mongoIndexBuilder.close();
+        }
+    }
+
+    private static void manageHierarchicalInvertedIndex(List<Metadata> books) throws IOException {
+        hierarchicalIndexBuilder.processBooks(books);
+
+        hierarchicalIndexBuilder.save(hierarchicalIndexDirectory);
+        log.info("Inverted indexes saved in: {}", hierarchicalIndexDirectory);
+        log.info("Number of Terms: {}", hierarchicalIndexBuilder.getNumberOfTerms());
     }
 }

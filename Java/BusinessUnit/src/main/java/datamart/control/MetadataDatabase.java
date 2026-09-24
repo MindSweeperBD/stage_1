@@ -1,4 +1,6 @@
-package datamart;
+package datamart.control;
+
+import datamart.model.Metadata;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

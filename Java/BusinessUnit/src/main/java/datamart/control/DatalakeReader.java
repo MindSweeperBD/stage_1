@@ -1,5 +1,6 @@
-package datamart;
+package datamart.control;
 
+import datamart.model.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
