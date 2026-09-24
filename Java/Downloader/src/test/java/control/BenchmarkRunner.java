@@ -50,7 +50,7 @@ public class BenchmarkRunner {
     }
 
     private void lookupLog(String bookId, double millis, File header, File body) {
-        log.info("{} layout: book {} found in {} s (header={}, body={})",
+        log.info("{} layout: book {} found in {} ms (header={}, body={})",
                 layout,
                 bookId,
                 String.format("%.2f", millis),

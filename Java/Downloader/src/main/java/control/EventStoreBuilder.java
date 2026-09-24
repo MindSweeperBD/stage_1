@@ -83,7 +83,7 @@ public class EventStoreBuilder implements EventStore {
     }
 
     private void writeEventToFile(File file, String content) {
-        try (FileWriter fw = new FileWriter(file, true)) {
+        try (FileWriter fw = new FileWriter(file, false)) {
             fw.write(content);
             fw.write("\n");
             log.trace("Event stored in: {}", file.getAbsolutePath());
