@@ -6,6 +6,7 @@
 
 #include <unicode/uchar.h>
 #include <unicode/unistr.h>
+#include <unicode/locid.h>
 
 namespace datamart::control {
 
@@ -60,7 +61,7 @@ std::string TextNormalizer::normalizeText(
     icu::UnicodeString unicodeText =
         icu::UnicodeString::fromUTF8(text);
 
-    unicodeText.toLower("");
+    unicodeText.toLower(icu::Locale::getRoot());
 
     icu::UnicodeString normalized;
 
