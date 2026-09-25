@@ -50,6 +50,19 @@ void saveIndexedBook(
         );
     }
 
+    // Avoid storing the same book ID more than once.
+    {
+        std::ifstream inputFile(indexPath);
+
+        int indexedBookId;
+
+        while (inputFile >> indexedBookId) {
+            if (indexedBookId == bookId) {
+                return;
+            }
+        }
+    }
+
     std::ofstream file(
         indexPath,
         std::ios::out | std::ios::app
