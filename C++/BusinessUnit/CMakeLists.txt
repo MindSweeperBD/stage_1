@@ -11,6 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # -------------------------
 
 find_package(SQLite3 REQUIRED)
+find_package(ICU REQUIRED COMPONENTS uc)
 find_package(bsoncxx REQUIRED)
 find_package(mongocxx REQUIRED)
 
