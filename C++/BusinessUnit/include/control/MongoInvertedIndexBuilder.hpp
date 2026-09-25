@@ -10,12 +10,12 @@ namespace datamart::control {
 class MongoInvertedIndexBuilder {
 public:
     explicit MongoInvertedIndexBuilder(
-        const std::string& connectionString = "mongodb://localhost:27017"
+        std::string connectionString = "mongodb://localhost:27017"
     );
 
     void build(
         const std::vector<datamart::model::Metadata>& metadataList
-    );
+    ) const;
 
 private:
     std::string connectionString;
