@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 
+import static datamart.control.Indexer.markListAsIndexed;
+
 public class DatamartMain {
 
     private static final Logger log = LoggerFactory.getLogger(DatamartMain.class);
@@ -39,11 +41,11 @@ public class DatamartMain {
 
     private static void buildDatamart() throws IOException, SQLException {
         List<Metadata> books = readDatalake();
-
         Files.createDirectories(datamartPath);
-        manageDatabase(books);
 
+        manageDatabase(books);
         manageInvertedIndexes(books);
+        markListAsIndexed(books);
 
         log.info("Datamart built correctly");
     }
@@ -56,7 +58,7 @@ public class DatamartMain {
         return books;
     }
 
-    private static void manageDatabase(List<Metadata> books) throws SQLException {
+    public static void manageDatabase(List<Metadata> books) throws SQLException {
         log.info("Creating the metadata database...");
         database.createDatabase();
 
@@ -71,7 +73,7 @@ public class DatamartMain {
         manageHierarchicalInvertedIndex(books);
     }
 
-    private static void manageMonolithicInvertedIndex(List<Metadata> books) throws IOException {
+    public static void manageMonolithicInvertedIndex(List<Metadata> books) throws IOException {
         monolithicIndexBuilder.processBooks(books);
 
         monolithicIndexBuilder.saveInvertedIndex(monolithicIndexDirectory);

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>viper.sentinox</groupId>
-    <artifactId>BusinessUnit</artifactId>
+    <artifactId>Indexer</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>

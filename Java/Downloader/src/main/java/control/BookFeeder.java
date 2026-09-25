@@ -21,7 +21,7 @@ import static control.BookDownloader.downloadBook;
 
 public class BookFeeder {
 
-    private static final File indexedFile = new File("control/indexed_books.txt");
+    private static final File downloadedFile = new File("control/downloaded_books.txt");
     private static final Logger log = LoggerFactory.getLogger(BookFeeder.class);
 
     public static Map<Integer, String[]> saveBooks(List<Integer> bookIds, DatalakeLayout layout) throws IOException, InterruptedException {
@@ -35,7 +35,7 @@ public class BookFeeder {
                 builder.store(event);
                 addTimestamp(bookId, timestamps);
             }
-            markAsIndexed(bookId);
+            markAsDownloaded(bookId);
         }
         return timestamps;
     }
@@ -48,34 +48,33 @@ public class BookFeeder {
         timestamps.put(bookId, new String[]{date, hour});
     }
 
-    private static void markAsIndexed(int bookId) {
+    public static void markAsDownloaded(int bookId) {
         try {
-            List<String> lines = getIndexedContent();
+            List<String> lines = getDownloadedContent();
 
             if (!lines.contains(String.valueOf(bookId))) {
                 Files.writeString(
-                        indexedFile.toPath(),
+                        downloadedFile.toPath(),
                         bookId + "\n",
                         StandardOpenOption.APPEND
                 );
-                log.trace("Book {} marked as indexed.", bookId);
+                log.trace("Book {} marked as downloaded.", bookId);
             }
 
         } catch (IOException e) {
-            log.error("Error updating indexed_books.txt: {}", e.getMessage());
+            log.error("Error updating downloaded_books.txt: {}", e.getMessage());
         }
     }
 
-    private static List<String> getIndexedContent() throws IOException {
-        if (!indexedFile.exists()) {
-            indexedFile.getParentFile().mkdirs();
-            indexedFile.createNewFile();
+    private static List<String> getDownloadedContent() throws IOException {
+        if (!downloadedFile.exists()) {
+            Files.createDirectories(downloadedFile.toPath().getParent());
+            Files.createFile(downloadedFile.toPath());
         }
-        List<String> lines = Files.readAllLines(indexedFile.toPath());
-        return lines;
+        return Files.readAllLines(downloadedFile.toPath());
     }
 
-    private static List<BookEvent> getBookEvents(int bookId) throws IOException, InterruptedException {
+    protected static List<BookEvent> getBookEvents(int bookId) throws IOException, InterruptedException {
         Book book = downloadBook(bookId);
 
         if (book == null) {

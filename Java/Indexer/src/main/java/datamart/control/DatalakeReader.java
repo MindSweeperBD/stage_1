@@ -47,7 +47,7 @@ public class DatalakeReader {
         }
     }
 
-    private static Metadata getMetadata(Path headerPath) throws IOException {
+    public static Metadata getMetadata(Path headerPath) throws IOException {
         int bookId = getBookId(headerPath);
         Path bodyPath = getBodyPath(headerPath, bookId);
 

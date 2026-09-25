@@ -17,14 +17,18 @@ public class MonolithicInvertedIndexBuilder {
 
     public void processBooks(List<Metadata> books) throws IOException {
         for (Metadata bookMetadata : books) {
-            for (String word : getWordsList(bookMetadata)) {
-                index
-                        .computeIfAbsent(
-                                word,
-                                ignored -> new HashSet<>()
-                        )
-                        .add(bookMetadata.bookId());
-            }
+            processBook(bookMetadata);
+        }
+    }
+
+    public void processBook(Metadata bookMetadata) throws IOException {
+        for (String word : getWordsList(bookMetadata)) {
+            index
+                    .computeIfAbsent(
+                            word,
+                            ignored -> new HashSet<>()
+                    )
+                    .add(bookMetadata.bookId());
         }
     }
 
