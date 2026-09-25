@@ -113,19 +113,27 @@ BookDownloader::download(int bookId) {
 
     curl_easy_cleanup(curl);
 
-    if (result != CURLE_OK ||
-        httpCode < 200 ||
-        httpCode >= 300) {
+    if (result != CURLE_OK) {
+    std::cerr
+        << "Could not download book "
+        << bookId
+        << ". CURL error: "
+        << curl_easy_strerror(result)
+        << '\n';
 
-        std::cerr
-            << "Could not download book "
-            << bookId
-            << " from "
-            << url
-            << '\n';
+    return std::nullopt;
+}
 
-        return std::nullopt;
-    }
+if (httpCode < 200 || httpCode >= 300) {
+    std::cerr
+        << "Could not download book "
+        << bookId
+        << ". HTTP status: "
+        << httpCode
+        << '\n';
+
+    return std::nullopt;
+}
 
     const std::regex startPattern(
         R"(\*\*\* START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK.*?\*\*\*)",
