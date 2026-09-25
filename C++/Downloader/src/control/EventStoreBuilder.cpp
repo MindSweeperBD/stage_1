@@ -34,7 +34,7 @@ void writeEvent(
         );
     }
 
-    file << event.getContent();
+    file << event.getContent() << '\n';
 
     if (!file) {
         throw std::runtime_error(
