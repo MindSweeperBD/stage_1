@@ -6,6 +6,7 @@
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace downloader::control {
 
@@ -124,39 +125,46 @@ BookDownloader::download(int bookId) {
     curl_easy_cleanup(curl);
 
     if (result != CURLE_OK) {
-    std::cerr
-        << "Could not download book "
-        << bookId
-        << ". CURL error: "
-        << curl_easy_strerror(result)
-        << '\n';
+        std::cerr
+            << "Could not download book "
+            << bookId
+            << ". CURL error: "
+            << curl_easy_strerror(result)
+            << '\n';
 
-    return std::nullopt;
-}
+        return std::nullopt;
+    }
 
-if (httpCode < 200 || httpCode >= 300) {
-    std::cerr
-        << "Could not download book "
-        << bookId
-        << ". HTTP status: "
-        << httpCode
-        << '\n';
+    if (httpCode < 200 || httpCode >= 300) {
+        std::cerr
+            << "Could not download book "
+            << bookId
+            << ". HTTP status: "
+            << httpCode
+            << '\n';
 
-    return std::nullopt;
-}
+        return std::nullopt;
+    }
+
+    /*
+     * Project Gutenberg marks the beginning and end
+     * of the actual book using lines similar to:
+     *
+     * *** START OF THE PROJECT GUTENBERG EBOOK ... ***
+     * *** END OF THE PROJECT GUTENBERG EBOOK ... ***
+     */
 
     const std::regex startPattern(
-        R"(\*\*\* START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK.*?\*\*\*)",
+        R"(\*\*\*\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\r\n]*\*\*\*)",
         std::regex_constants::icase
     );
 
     const std::regex endPattern(
-        R"(\*\*\* END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK.*?\*\*\*)",
+        R"(\*\*\*\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\r\n]*\*\*\*)",
         std::regex_constants::icase
     );
 
     std::smatch startMatch;
-    std::smatch endMatch;
 
     if (!std::regex_search(
             response,
@@ -183,11 +191,13 @@ if (httpCode < 200 || httpCode >= 300) {
             startMatch.length()
         );
 
-    const std::string remainingText =
+    const std::string textAfterStart =
         response.substr(bodyStart);
 
+    std::smatch endMatch;
+
     if (!std::regex_search(
-            remainingText,
+            textAfterStart,
             endMatch,
             endPattern
         )) {
