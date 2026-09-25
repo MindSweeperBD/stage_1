@@ -5,12 +5,12 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
-public class BenchmarkMain {
+public class DatamartBenchmarkMain {
 
     public static void main(String[] args) throws Exception {
 
         Options options = new OptionsBuilder()
-                .include(BenchmarkJHM.class.getSimpleName())
+                .include(DatamartBenchmarkJHM.class.getSimpleName())
                 .warmupIterations(1)
                 .warmupTime(TimeValue.seconds(1))
                 .measurementIterations(5)
