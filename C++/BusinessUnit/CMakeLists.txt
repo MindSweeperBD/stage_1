@@ -46,6 +46,7 @@ target_include_directories(BusinessUnit
 target_link_libraries(BusinessUnit
     PRIVATE
         SQLite::SQLite3
+        ICU::uc
         mongo::bsoncxx_shared
         mongo::mongocxx_shared
 )
