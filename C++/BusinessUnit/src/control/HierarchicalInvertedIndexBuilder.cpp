@@ -1,8 +1,10 @@
 #include "control/HierarchicalInvertedIndexBuilder.hpp"
 #include "control/TextNormalizer.hpp"
 
+#include <cctype>
 #include <fstream>
 #include <stdexcept>
+#include <string>
 
 namespace datamart::control {
 
@@ -11,7 +13,6 @@ void HierarchicalInvertedIndexBuilder::build(
     const std::filesystem::path& outputDirectory
 ) {
     const auto index = buildIndex(metadataList);
-
     writeIndex(index, outputDirectory);
 }
 
@@ -22,12 +23,13 @@ HierarchicalInvertedIndexBuilder::buildIndex(
     std::map<std::string, std::set<int>> index;
 
     for (const auto& metadata : metadataList) {
-
         const auto words =
             TextNormalizer::normalize(metadata.bodyPath);
 
         for (const auto& word : words) {
-            index[word].insert(metadata.bookId);
+            if (!word.empty()) {
+                index[word].insert(metadata.bookId);
+            }
         }
     }
 
@@ -46,27 +48,43 @@ void HierarchicalInvertedIndexBuilder::writeIndex(
             continue;
         }
 
-        const std::string firstLetter(1, word.front());
+        const unsigned char firstCharacter =
+            static_cast<unsigned char>(word.front());
+
+        const char upperCharacter =
+            static_cast<char>(std::toupper(firstCharacter));
+
+        const std::string firstLetter(1, upperCharacter);
 
         const std::filesystem::path letterDirectory =
             outputDirectory / firstLetter;
 
         std::filesystem::create_directories(letterDirectory);
 
-        const std::filesystem::path filePath =
+        const std::filesystem::path wordFile =
             letterDirectory / (word + ".txt");
 
-        std::ofstream file(filePath);
+        std::ofstream file(
+            wordFile,
+            std::ios::out | std::ios::trunc
+        );
 
         if (!file.is_open()) {
             throw std::runtime_error(
                 "Could not create index file: " +
-                filePath.string()
+                wordFile.string()
             );
         }
 
         for (const int bookId : bookIds) {
             file << bookId << '\n';
+        }
+
+        if (!file) {
+            throw std::runtime_error(
+                "Error while writing index file: " +
+                wordFile.string()
+            );
         }
     }
 }
