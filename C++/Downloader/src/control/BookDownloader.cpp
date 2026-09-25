@@ -40,6 +40,16 @@ std::size_t BookDownloader::writeCallback(
 std::optional<downloader::model::Book>
 BookDownloader::download(int bookId) {
 
+    static const bool curlInitialized = [] {
+        return curl_global_init(CURL_GLOBAL_DEFAULT) == CURLE_OK;
+    }();
+
+    if (!curlInitialized) {
+        throw std::runtime_error(
+            "Could not initialize libcurl globally."
+        );
+    }
+
     const std::string url = buildUrl(bookId);
 
     CURL* curl = curl_easy_init();
