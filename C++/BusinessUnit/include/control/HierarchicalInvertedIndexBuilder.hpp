@@ -10,11 +10,11 @@
 
 namespace datamart::control {
 
-class MonolithicInvertedIndexBuilder {
+class HierarchicalInvertedIndexBuilder {
 public:
     static void build(
         const std::vector<datamart::model::Metadata>& metadataList,
-        const std::filesystem::path& outputPath
+        const std::filesystem::path& outputDirectory
     );
 
 private:
@@ -22,9 +22,9 @@ private:
         const std::vector<datamart::model::Metadata>& metadataList
     );
 
-    static void writeJson(
+    static void writeIndex(
         const std::map<std::string, std::set<int>>& index,
-        const std::filesystem::path& outputPath
+        const std::filesystem::path& outputDirectory
     );
 };
 
