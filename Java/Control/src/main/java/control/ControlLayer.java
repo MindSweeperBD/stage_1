@@ -71,20 +71,12 @@ public class ControlLayer {
         );
     }
 
-    private void indexNextBook(Set<String> readyToIndex) throws IOException, SQLException {
-        String bookId = readyToIndex.iterator().next();
-        log.info("[CONTROL] Scheduling book {} for indexing...", bookId);
-
-        indexBook(bookId);
-        log.info("[CONTROL] Book {} successfully indexed.", bookId);
-    }
-
     private void downloadNewBook(Set<String> downloaded) throws IOException, InterruptedException {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             int candidateId = random.nextInt(TOTAL_BOOKS) + 1;
 
             if (!downloaded.contains(String.valueOf(candidateId))) {
-                log.info("[CONTROL] Downloading new book with ID {}...", candidateId);
+                log.info("[CONTROL] Downloading book {}...", candidateId);
 
                 downloadBook(candidateId);
                 log.info("[CONTROL] Book {} successfully downloaded.", candidateId);
@@ -108,6 +100,14 @@ public class ControlLayer {
             builder.store(event);
         }
         markAsDownloaded(bookId);
+    }
+
+    private void indexNextBook(Set<String> readyToIndex) throws IOException, SQLException {
+        String bookId = readyToIndex.iterator().next();
+        log.info("[CONTROL] Indexing book {}...", bookId);
+
+        indexBook(bookId);
+        log.info("[CONTROL] Book {} successfully indexed.", bookId);
     }
 
     private void indexBook(String bookId) throws IOException, SQLException {
