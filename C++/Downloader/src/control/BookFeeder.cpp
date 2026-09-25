@@ -11,9 +11,8 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 namespace downloader::control {
@@ -39,26 +38,6 @@ std::string formatTime(
     stream << std::put_time(&localTime, format);
 
     return stream.str();
-}
-
-std::unordered_set<int> loadIndexedBooks(
-    const std::filesystem::path& indexPath
-) {
-    std::unordered_set<int> indexedBooks;
-
-    std::ifstream file(indexPath);
-
-    if (!file.is_open()) {
-        return indexedBooks;
-    }
-
-    int bookId;
-
-    while (file >> bookId) {
-        indexedBooks.insert(bookId);
-    }
-
-    return indexedBooks;
 }
 
 void saveIndexedBook(
@@ -108,9 +87,6 @@ BookFeeder::saveBooks(
         "control" /
         "indexed_books.txt";
 
-    auto indexedBooks =
-        loadIndexedBooks(indexPath);
-
     std::vector<std::unique_ptr<EventStore>> stores;
     stores.reserve(layouts.size());
 
@@ -124,15 +100,6 @@ BookFeeder::saveBooks(
     }
 
     for (const int bookId : bookIds) {
-
-        if (indexedBooks.contains(bookId)) {
-            std::cout
-                << "Book "
-                << bookId
-                << " is already indexed. Skipping.\n";
-
-            continue;
-        }
 
         const auto book =
             BookDownloader::download(bookId);
@@ -183,7 +150,6 @@ BookFeeder::saveBooks(
             bookId
         );
 
-        indexedBooks.insert(bookId);
         timestamps.push_back(timestamp);
 
         std::cout
