@@ -10,7 +10,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Dependencies
 # -------------------------
 
-find_package(CURL REQUIRED)
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(
+    LIBCURL
+    REQUIRED
+    IMPORTED_TARGET
+    libcurl
+)
 
 # -------------------------
 # Downloader executable
@@ -38,5 +45,5 @@ target_include_directories(Downloader
 
 target_link_libraries(Downloader
     PRIVATE
-        CURL::libcurl
+        PkgConfig::LIBCURL
 )
