@@ -31,18 +31,31 @@ std::string formatTime(
     const char* format
 ) {
     const std::time_t time =
-        std::chrono::system_clock::to_time_t(timePoint);
+        std::chrono::system_clock::to_time_t(
+            timePoint
+        );
 
     std::tm localTime{};
 
 #ifdef _WIN32
-    localtime_s(&localTime, &time);
+    localtime_s(
+        &localTime,
+        &time
+    );
 #else
-    localtime_r(&time, &localTime);
+    localtime_r(
+        &time,
+        &localTime
+    );
 #endif
 
     std::ostringstream stream;
-    stream << std::put_time(&localTime, format);
+
+    stream
+        << std::put_time(
+               &localTime,
+               format
+           );
 
     return stream.str();
 }
@@ -58,7 +71,9 @@ void markAsDownloaded(
     std::unordered_set<int> downloaded;
 
     {
-        std::ifstream input(filePath);
+        std::ifstream input(
+            filePath
+        );
 
         int id;
 
@@ -73,7 +88,8 @@ void markAsDownloaded(
 
     std::ofstream output(
         filePath,
-        std::ios::out | std::ios::app
+        std::ios::out |
+        std::ios::app
     );
 
     if (!output.is_open()) {
@@ -82,7 +98,9 @@ void markAsDownloaded(
         );
     }
 
-    output << bookId << '\n';
+    output
+        << bookId
+        << '\n';
 }
 
 }
@@ -90,25 +108,36 @@ void markAsDownloaded(
 ControlLayer::ControlLayer(
     std::filesystem::path baseDirectory
 )
-    : baseDirectory_(std::move(baseDirectory)),
-      controlPath_(baseDirectory_ / "control"),
+    : baseDirectory_(
+          std::move(baseDirectory)
+      ),
+      controlPath_(
+          baseDirectory_ /
+          "control"
+      ),
       downloadedBooksPath_(
-          controlPath_ / "downloaded_books.txt"
+          controlPath_ /
+          "downloaded_books.txt"
       ),
       indexedBooksPath_(
-          controlPath_ / "indexed_books.txt"
+          controlPath_ /
+          "indexed_books.txt"
       ),
       datamartPath_(
-          baseDirectory_ / "datamart"
+          baseDirectory_ /
+          "datamart"
       ),
       metadataDatabasePath_(
-          datamartPath_ / "metadata.db"
+          datamartPath_ /
+          "metadata.db"
       ),
       datalakePath_(
-          baseDirectory_ / "batch_datalake"
+          baseDirectory_ /
+          "batch_datalake"
       ),
       indexPath_(
-          datamartPath_ / "inverted_index.json"
+          datamartPath_ /
+          "inverted_index.json"
       ),
       randomGenerator_(
           std::random_device{}()
@@ -147,12 +176,17 @@ ControlLayer::readBookIds(
 void ControlLayer::controlPipelineStep() {
 
     const auto downloaded =
-        readBookIds(downloadedBooksPath_);
+        readBookIds(
+            downloadedBooksPath_
+        );
 
     const auto indexed =
-        readBookIds(indexedBooksPath_);
+        readBookIds(
+            indexedBooksPath_
+        );
 
-    std::unordered_set<std::string> readyToIndex;
+    std::unordered_set<std::string>
+        readyToIndex;
 
     for (const auto& id : downloaded) {
         if (!indexed.contains(id)) {
@@ -171,26 +205,37 @@ void ControlLayer::controlPipelineStep() {
 void ControlLayer::downloadNewBook(
     const std::unordered_set<std::string>& downloaded
 ) {
-    std::uniform_int_distribution<int> distribution(
-        1,
-        TOTAL_BOOKS
-    );
+    std::uniform_int_distribution<int>
+        distribution(
+            1,
+            TOTAL_BOOKS
+        );
 
-    for (int attempt = 0; attempt < 100; ++attempt) {
-
+    for (
+        int attempt = 0;
+        attempt < 100;
+        ++attempt
+    ) {
         const int candidateId =
-            distribution(randomGenerator_);
+            distribution(
+                randomGenerator_
+            );
 
-        if (!downloaded.contains(
-                std::to_string(candidateId)
-            )) {
-
+        if (
+            !downloaded.contains(
+                std::to_string(
+                    candidateId
+                )
+            )
+        ) {
             std::cout
                 << "[CONTROL] Downloading book "
                 << candidateId
                 << "...\n";
 
-            downloadBook(candidateId);
+            downloadBook(
+                candidateId
+            );
 
             return;
         }
@@ -204,9 +249,10 @@ void ControlLayer::downloadBook(
     int bookId
 ) {
     const auto book =
-        downloader::control::BookDownloader::download(
-            bookId
-        );
+        downloader::control::
+            BookDownloader::download(
+                bookId
+            );
 
     if (!book.has_value()) {
         std::cerr
@@ -221,37 +267,52 @@ void ControlLayer::downloadBook(
         std::chrono::system_clock::now();
 
     const std::string date =
-        formatTime(timestamp, "%Y%m%d");
-
-    const std::string hour =
-        formatTime(timestamp, "%H");
-
-    downloader::model::BookEvent headerEvent(
-        date,
-        hour,
-        "BookFeeder",
-        bookId,
-        "header",
-        book->header
-    );
-
-    downloader::model::BookEvent bodyEvent(
-        date,
-        hour,
-        "BookFeeder",
-        bookId,
-        "body",
-        book->body
-    );
-
-    auto store =
-        downloader::control::EventStoreBuilder::build(
-            downloader::model::DatalakeLayout::BATCH_BASED,
-            baseDirectory_
+        formatTime(
+            timestamp,
+            "%Y%m%d"
         );
 
-    store->store(headerEvent);
-    store->store(bodyEvent);
+    const std::string hour =
+        formatTime(
+            timestamp,
+            "%H"
+        );
+
+    downloader::model::BookEvent
+        headerEvent(
+            date,
+            hour,
+            "BookFeeder",
+            bookId,
+            "header",
+            book->header
+        );
+
+    downloader::model::BookEvent
+        bodyEvent(
+            date,
+            hour,
+            "BookFeeder",
+            bookId,
+            "body",
+            book->body
+        );
+
+    auto store =
+        downloader::control::
+            EventStoreBuilder::build(
+                downloader::model::
+                    DatalakeLayout::BATCH_BASED,
+                baseDirectory_
+            );
+
+    store->store(
+        headerEvent
+    );
+
+    store->store(
+        bodyEvent
+    );
 
     markAsDownloaded(
         downloadedBooksPath_,
@@ -275,7 +336,9 @@ void ControlLayer::indexNextBook(
         << bookId
         << "...\n";
 
-    indexBook(bookId);
+    indexBook(
+        bookId
+    );
 
     std::cout
         << "[CONTROL] Book "
@@ -296,12 +359,17 @@ void ControlLayer::indexBook(
     const int id =
         std::stoi(bookId);
 
-    const datamart::model::Metadata* selectedBook =
-        nullptr;
+    const datamart::model::Metadata*
+        selectedBook = nullptr;
 
-    for (const auto& metadata : metadataList) {
+    for (
+        const auto& metadata :
+        metadataList
+    ) {
         if (metadata.bookId == id) {
-            selectedBook = &metadata;
+            selectedBook =
+                &metadata;
+
             break;
         }
     }
@@ -317,27 +385,23 @@ void ControlLayer::indexBook(
         metadataDatabasePath_.string()
     );
 
-    database.createDatabase();
+    database.initialize();
 
     database.insertMetadata(
         {*selectedBook}
     );
 
-    datamart::control::MonolithicInvertedIndexBuilder
-        indexBuilder;
+    datamart::control::
+        MonolithicInvertedIndexBuilder::build(
+            metadataList,
+            indexPath_
+        );
 
-    indexBuilder.processBook(
-        *selectedBook
-    );
-
-    indexBuilder.saveInvertedIndex(
-        indexPath_
-    );
-
-    datamart::control::Indexer::markAsIndexed(
-        id,
-        baseDirectory_
-    );
+    datamart::control::Indexer::
+        markAsIndexed(
+            id,
+            baseDirectory_
+        );
 }
 
 }
