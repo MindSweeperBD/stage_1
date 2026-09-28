@@ -3,14 +3,15 @@
 #include <curl/curl.h>
 
 #include <iostream>
-#include <regex>
 #include <stdexcept>
 #include <string>
 #include <utility>
 
 namespace downloader::control {
 
-std::string BookDownloader::buildUrl(int bookId) {
+std::string BookDownloader::buildUrl(
+    int bookId
+) {
     return
         "https://www.gutenberg.org/cache/epub/" +
         std::to_string(bookId) +
@@ -25,10 +26,13 @@ std::size_t BookDownloader::writeCallback(
     std::size_t nmemb,
     void* userData
 ) {
-    const std::size_t totalSize = size * nmemb;
+    const std::size_t totalSize =
+        size * nmemb;
 
     auto* response =
-        static_cast<std::string*>(userData);
+        static_cast<std::string*>(
+            userData
+        );
 
     response->append(
         static_cast<char*>(contents),
@@ -39,10 +43,14 @@ std::size_t BookDownloader::writeCallback(
 }
 
 std::optional<downloader::model::Book>
-BookDownloader::download(int bookId) {
-
+BookDownloader::download(
+    int bookId
+) {
     static const bool curlInitialized = [] {
-        return curl_global_init(CURL_GLOBAL_DEFAULT) == CURLE_OK;
+        return
+            curl_global_init(
+                CURL_GLOBAL_DEFAULT
+            ) == CURLE_OK;
     }();
 
     if (!curlInitialized) {
@@ -51,9 +59,11 @@ BookDownloader::download(int bookId) {
         );
     }
 
-    const std::string url = buildUrl(bookId);
+    const std::string url =
+        buildUrl(bookId);
 
-    CURL* curl = curl_easy_init();
+    CURL* curl =
+        curl_easy_init();
 
     if (curl == nullptr) {
         throw std::runtime_error(
@@ -135,7 +145,10 @@ BookDownloader::download(int bookId) {
         return std::nullopt;
     }
 
-    if (httpCode < 200 || httpCode >= 300) {
+    if (
+        httpCode < 200 ||
+        httpCode >= 300
+    ) {
         std::cerr
             << "Could not download book "
             << bookId
@@ -146,75 +159,31 @@ BookDownloader::download(int bookId) {
         return std::nullopt;
     }
 
-    /*
-     * Project Gutenberg marks the beginning and end
-     * of the actual book using lines similar to:
-     *
-     * *** START OF THE PROJECT GUTENBERG EBOOK ... ***
-     * *** END OF THE PROJECT GUTENBERG EBOOK ... ***
-     */
+    const std::string startMarker =
+        "*** START OF THE PROJECT GUTENBERG EBOOK";
 
-    const std::regex startPattern(
-        R"(\*\*\*\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\r\n]*\*\*\*)",
-        std::regex_constants::icase
-    );
-
-    const std::regex endPattern(
-        R"(\*\*\*\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK[^\r\n]*\*\*\*)",
-        std::regex_constants::icase
-    );
-
-    std::smatch startMatch;
-
-    if (!std::regex_search(
-            response,
-            startMatch,
-            startPattern
-        )) {
-
-        std::cerr
-            << "START marker not found for book "
-            << bookId
-            << '\n';
-
-        return std::nullopt;
-    }
+    const std::string endMarker =
+        "*** END OF THE PROJECT GUTENBERG EBOOK";
 
     const std::size_t startPosition =
-        static_cast<std::size_t>(
-            startMatch.position()
-        );
+        response.find(startMarker);
 
-    const std::size_t bodyStart =
-        startPosition +
-        static_cast<std::size_t>(
-            startMatch.length()
-        );
+    const std::size_t endPosition =
+        response.find(endMarker);
 
-    const std::string textAfterStart =
-        response.substr(bodyStart);
-
-    std::smatch endMatch;
-
-    if (!std::regex_search(
-            textAfterStart,
-            endMatch,
-            endPattern
-        )) {
-
+    if (
+        startPosition == std::string::npos ||
+        endPosition == std::string::npos ||
+        endPosition <
+            startPosition + startMarker.size()
+    ) {
         std::cerr
-            << "END marker not found for book "
+            << "Gutenberg markers not found for book "
             << bookId
             << '\n';
 
         return std::nullopt;
     }
-
-    const std::size_t bodyEnd =
-        bodyStart +
-        static_cast<std::size_t>(
-            endMatch.position()
-        );
 
     std::string header =
         response.substr(
@@ -222,10 +191,14 @@ BookDownloader::download(int bookId) {
             startPosition
         );
 
+    const std::size_t bodyStart =
+        startPosition +
+        startMarker.size();
+
     std::string body =
         response.substr(
             bodyStart,
-            bodyEnd - bodyStart
+            endPosition - bodyStart
         );
 
     return downloader::model::Book{
