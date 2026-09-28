@@ -3,6 +3,8 @@
 #include "model/Metadata.hpp"
 
 #include <filesystem>
+#include <optional>
+#include <string>
 #include <vector>
 
 struct sqlite3;
@@ -24,6 +26,14 @@ public:
 
     void insertMetadata(
         const std::vector<datamart::model::Metadata>& metadataList
+    );
+
+    std::vector<datamart::model::Metadata> findByAuthor(
+        const std::string& author
+    );
+
+    std::optional<std::string> findBodyPathById(
+        int bookId
     );
 
 private:
