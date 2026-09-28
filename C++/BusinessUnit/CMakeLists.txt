@@ -7,75 +7,130 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(SQLite3 REQUIRED)
+find_package(ICU REQUIRED COMPONENTS uc i18n)
 
-# ============================================================
-# BusinessUnit core library
-# ============================================================
+find_package(PkgConfig QUIET)
 
-add_library(BusinessUnitCore
+if(PkgConfig_FOUND)
+    pkg_check_modules(
+        MONGOCXX
+        QUIET
+        libmongocxx
+    )
+
+    pkg_check_modules(
+        BSONCXX
+        QUIET
+        libbsoncxx
+    )
+endif()
+
+set(
+    BUSINESSUNIT_SOURCES
+
     src/control/DatalakeReader.cpp
     src/control/HeaderParser.cpp
     src/control/MetadataDatabase.cpp
     src/control/TextNormalizer.cpp
     src/control/MonolithicInvertedIndexBuilder.cpp
     src/control/HierarchicalInvertedIndexBuilder.cpp
+    src/control/Indexer.cpp
 )
 
-target_include_directories(BusinessUnitCore
+if(MONGOCXX_FOUND AND BSONCXX_FOUND)
+    list(
+        APPEND
+        BUSINESSUNIT_SOURCES
+        src/control/MongoInvertedIndexBuilder.cpp
+    )
+endif()
+
+add_library(
+    BusinessUnitCore
+    ${BUSINESSUNIT_SOURCES}
+)
+
+target_include_directories(
+    BusinessUnitCore
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(BusinessUnitCore
+target_link_libraries(
+    BusinessUnitCore
     PUBLIC
         SQLite::SQLite3
+        ICU::uc
+        ICU::i18n
 )
 
-# ============================================================
-# Main BusinessUnit executable
-# ============================================================
+if(MONGOCXX_FOUND AND BSONCXX_FOUND)
 
-add_executable(BusinessUnit
+    target_include_directories(
+        BusinessUnitCore
+        PUBLIC
+            ${MONGOCXX_INCLUDE_DIRS}
+            ${BSONCXX_INCLUDE_DIRS}
+    )
+
+    target_link_directories(
+        BusinessUnitCore
+        PUBLIC
+            ${MONGOCXX_LIBRARY_DIRS}
+            ${BSONCXX_LIBRARY_DIRS}
+    )
+
+    target_link_libraries(
+        BusinessUnitCore
+        PUBLIC
+            ${MONGOCXX_LIBRARIES}
+            ${BSONCXX_LIBRARIES}
+    )
+
+    target_compile_definitions(
+        BusinessUnitCore
+        PUBLIC
+            MINDSWEEPER_HAS_MONGODB=1
+    )
+
+else()
+
+    message(
+        STATUS
+        "MongoDB C++ driver not found: MongoDB index output will be skipped"
+    )
+
+endif()
+
+add_executable(
+    BusinessUnit
     src/DatamartMain.cpp
 )
 
-target_link_libraries(BusinessUnit
+target_link_libraries(
+    BusinessUnit
     PRIVATE
         BusinessUnitCore
 )
 
-# ============================================================
-# Datamart benchmark
-# ============================================================
-
-add_executable(DatamartBenchmark
+add_executable(
+    DatamartBenchmark
     benchmark/src/DatamartBenchmark.cpp
 )
 
-target_include_directories(DatamartBenchmark
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-target_link_libraries(DatamartBenchmark
+target_link_libraries(
+    DatamartBenchmark
     PRIVATE
         BusinessUnitCore
 )
 
-# ============================================================
-# Datamart Benchmark Main
-# ============================================================
-
-add_executable(DatamartBenchmarkMain
+add_executable(
+    DatamartBenchmarkMain
     benchmark/src/DatamartBenchmarkMain.cpp
 )
 
-target_include_directories(DatamartBenchmarkMain
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-target_link_libraries(DatamartBenchmarkMain
+target_link_libraries(
+    DatamartBenchmarkMain
     PRIVATE
         BusinessUnitCore
 )
