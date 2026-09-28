@@ -1,5 +1,4 @@
 #include "control/BookFeeder.hpp"
-
 #include "control/BookDownloader.hpp"
 #include "control/EventStoreBuilder.hpp"
 #include "model/BookEvent.hpp"
@@ -20,67 +19,66 @@ namespace downloader::control {
 namespace {
 
 std::string formatTime(
-    const std::chrono::system_clock::time_point& timePoint,
+    const std::chrono::system_clock::time_point& tp,
     const char* format
 ) {
-    const std::time_t time =
-        std::chrono::system_clock::to_time_t(timePoint);
+    const std::time_t t =
+        std::chrono::system_clock::to_time_t(tp);
 
-    std::tm localTime{};
+    std::tm local{};
 
 #ifdef _WIN32
-    localtime_s(&localTime, &time);
+    localtime_s(&local, &t);
 #else
-    localtime_r(&time, &localTime);
+    localtime_r(&t, &local);
 #endif
 
-    std::ostringstream stream;
-    stream << std::put_time(&localTime, format);
+    std::ostringstream out;
+    out << std::put_time(&local, format);
 
-    return stream.str();
+    return out.str();
 }
 
-void saveIndexedBook(
-    const std::filesystem::path& indexPath,
+void markAsDownloaded(
+    const std::filesystem::path& path,
     int bookId
 ) {
-    if (indexPath.has_parent_path()) {
+    if (path.has_parent_path()) {
         std::filesystem::create_directories(
-            indexPath.parent_path()
+            path.parent_path()
         );
     }
 
-    // Avoid storing the same book ID more than once.
     {
-        std::ifstream inputFile(indexPath);
+        std::ifstream in(path);
 
-        int indexedBookId;
+        int id;
 
-        while (inputFile >> indexedBookId) {
-            if (indexedBookId == bookId) {
+        while (in >> id) {
+            if (id == bookId) {
                 return;
             }
         }
     }
 
-    std::ofstream file(
-        indexPath,
-        std::ios::out | std::ios::app
+    std::ofstream out(
+        path,
+        std::ios::app
     );
 
-    if (!file.is_open()) {
+    if (!out) {
         throw std::runtime_error(
-            "Could not open indexed books file: " +
-            indexPath.string()
+            "Could not open downloaded books file: " +
+            path.string()
         );
     }
 
-    file << bookId << '\n';
+    out << bookId << '\n';
 
-    if (!file) {
+    if (!out) {
         throw std::runtime_error(
-            "Could not update indexed books file: " +
-            indexPath.string()
+            "Could not update downloaded books file: " +
+            path.string()
         );
     }
 }
@@ -90,18 +88,23 @@ void saveIndexedBook(
 std::vector<std::chrono::system_clock::time_point>
 BookFeeder::saveBooks(
     const std::vector<int>& bookIds,
-    const std::vector<downloader::model::DatalakeLayout>& layouts,
+    const std::vector<
+        downloader::model::DatalakeLayout
+    >& layouts,
     const std::filesystem::path& baseDirectory
 ) {
-    std::vector<std::chrono::system_clock::time_point> timestamps;
+    std::vector<
+        std::chrono::system_clock::time_point
+    > timestamps;
 
-    const std::filesystem::path indexPath =
+    const auto downloadedPath =
         baseDirectory /
         "control" /
-        "indexed_books.txt";
+        "downloaded_books.txt";
 
-    std::vector<std::unique_ptr<EventStore>> stores;
-    stores.reserve(layouts.size());
+    std::vector<
+        std::unique_ptr<EventStore>
+    > stores;
 
     for (const auto layout : layouts) {
         stores.push_back(
@@ -117,7 +120,7 @@ BookFeeder::saveBooks(
         const auto book =
             BookDownloader::download(bookId);
 
-        if (!book.has_value()) {
+        if (!book) {
             std::cerr
                 << "Book "
                 << bookId
@@ -130,10 +133,16 @@ BookFeeder::saveBooks(
             std::chrono::system_clock::now();
 
         const std::string date =
-            formatTime(timestamp, "%Y%m%d");
+            formatTime(
+                timestamp,
+                "%Y%m%d"
+            );
 
         const std::string hour =
-            formatTime(timestamp, "%H");
+            formatTime(
+                timestamp,
+                "%H"
+            );
 
         downloader::model::BookEvent headerEvent(
             date,
@@ -158,12 +167,14 @@ BookFeeder::saveBooks(
             store->store(bodyEvent);
         }
 
-        saveIndexedBook(
-            indexPath,
+        markAsDownloaded(
+            downloadedPath,
             bookId
         );
 
-        timestamps.push_back(timestamp);
+        timestamps.push_back(
+            timestamp
+        );
 
         std::cout
             << "Book "
