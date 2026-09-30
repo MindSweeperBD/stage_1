@@ -47,3 +47,4 @@ In order to use the project it important to have on your computer ***Python 3***
 In other hand for Java, it is necessary have ***Java 21*** and ***Maven***. 
 
 At last but no less important, C++ requires ***C++20 compatible compiler***, ***CMake 3.16*** or later, ***SQLite3***, ***ICU***, ***libcurl*** and ***MongoDB C++ drivers*** for the MongoDB implementation.
+
