@@ -17,3 +17,27 @@ The project implements 3 different programming languages which follows the same 
 - **Java**, as Python, it has a Downloader, a Control Layer and it's benchmarks, but, instead of a Datamart, it has an *Indexer*.
 - **C++**, it's main components are the same as the Python components, *Downloader*, *Datamart*, *Control Layer* and *Benchmarks*.
 
+## Repository Structure
+Each language contains the components required for implement the pipeline and perform the benchmarks.
+```
+stage_1/ 
+│
+├── C++/
+│     ├── Downloader/
+│     ├── BusinessUnit/
+│     └── Control/
+│
+├── Java/
+│     ├── Downloader/
+│     ├── Indexer/
+│     └── Control/
+│
+├── Python/
+│     ├── Downloader/
+│     ├── Index/
+│     ├── Controller/
+│     └── Benchmark/
+│
+└── README.md
+```
+
