@@ -1,14 +1,15 @@
 import logging
+import sys
 from pathlib import Path
 from Index.DatalakeReader import DatalakeReader
 from Index.MetaDataDataBase import MetadataDatabase
 from Index.MonolithicInvertedIndexBuilder import MonolithicInvertedIndexBuilder
-from Index.MetaData import Metadata
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+logging.basicConfig(level=logging.INFO,format="%(asctime)s [%(levelname)s] %(message)s",stream=sys.stdout)
 log = logging.getLogger(__name__)
 
-DATALAKE_PATH = Path(__file__).resolve().parent.parent / "Benchmark" / "batch_datalake"  # o time_datalake según el que quieras indexar
+DATALAKE_PATH = Path(__file__).resolve().parent.parent / "Benchmark" / "batch_datalake"
 DATAMART_PATH = Path("datamart")
 METADATA_DATABASE = DATAMART_PATH / "metadata.db"
 INVERTED_INDEX_FILE = DATAMART_PATH / "inverted_index.json"

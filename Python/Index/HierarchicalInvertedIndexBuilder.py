@@ -10,7 +10,6 @@ class HierarchicalInvertedIndexBuilder(InvertedIndexBuilder):
         self.index: dict[str, set[int]] = {}
 
     def process_book(self, book_metadata: Metadata) -> None:
-        """Procesa un solo libro e inserta sus palabras en el índice."""
         for word in TextNormalizer.get_words_list(book_metadata):
             if word not in self.index:
                 self.index[word] = set()
@@ -39,7 +38,6 @@ class HierarchicalInvertedIndexBuilder(InvertedIndexBuilder):
         return len(self.index)
 
     def get_postings(self, term: str) -> list[int]:
-        """Devuelve los IDs de los libros donde aparece el término."""
         normalized = term.lower().strip()
         if not normalized:
             return []

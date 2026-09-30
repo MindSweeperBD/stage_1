@@ -10,7 +10,6 @@ class MonolithicInvertedIndexBuilder(InvertedIndexBuilder):
         self.index: dict[str, set[int]] = {}
 
     def process_book(self, book_metadata: Metadata) -> None:
-        """Procesa un solo libro e inserta sus palabras en el índice en memoria."""
         words = TextNormalizer.get_words_list(book_metadata)
         for word in words:
             if word not in self.index:
@@ -37,6 +36,5 @@ class MonolithicInvertedIndexBuilder(InvertedIndexBuilder):
         return len(self.index)
 
     def get_postings(self, term: str) -> list[int]:
-        """Devuelve los IDs de los libros donde aparece el término."""
         normalized = term.lower().strip()
-        return sorted(list(self.index.get(normalized, set())))
+        return sorted(list(self.index.get(normalized, set())))

@@ -26,7 +26,7 @@ class DatalakeReader:
         return metadata_list
 
     @staticmethod
-    def _get_book_id(header_path: Path) -> int: #REVISAR este metodo
+    def _get_book_id(header_path: Path) -> int:
         file_name = header_path.name
         id_text = file_name.replace(".header.txt", "")
         return int(id_text)
