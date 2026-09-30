@@ -10,3 +10,10 @@ The main objective of the stage is to build a data pipeline capable of downloadi
 - And the **Control Layer** who coordinates the different stages of the pipeline and keeps track of the processing state.
 
 For an additional objective we evaluate different implementations and storages through benchmarking. It includes implementations in **Python**, **Java** and **C++**, that we will compare to each other.
+
+## Implementations
+The project implements 3 different programming languages which follows the same general pipeline and are used as part of the performance comparation:
+- **Pyhton**, whose main components are a *Downloader*, a *Datamart*, a *Control Layer* and it's own *Benchmarks*.
+- **Java**, as Python, it has a Downloader, a Control Layer and it's benchmarks, but, instead of a Datamart, it has an *Indexer*.
+- **C++**, it's main components are the same as the Python components, *Downloader*, *Datamart*, *Control Layer* and *Benchmarks*.
+
