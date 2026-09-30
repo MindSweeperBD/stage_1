@@ -32,21 +32,21 @@ class IndexBenchmarkRunner:
         log.info("--- [1/3] Benchmarking Monolithic JSON Index ---")
         mono = MonolithicInvertedIndexBuilder()
 
-        # 1. Indexing speed
+
         start = time.perf_counter()
         mono.process_books(books)
         mono.save_inverted_index(self.mono_path)
         index_time = time.perf_counter() - start
         terms_count = mono.get_number_of_terms()
 
-        # 2. Disk usage
+
         disk_bytes = self.mono_path.stat().st_size if self.mono_path.exists() else 0
         disk_kb = disk_bytes / 1024
 
-        # 3. Query performance
+
         avg_query_ms = self._benchmark_queries(mono, SAMPLE_QUERIES)
 
-        # 4. Incremental update (añadir el primer libro de nuevo como test de update)
+
         start_update = time.perf_counter()
         mono.process_book(books[0])
         mono.save_inverted_index(self.mono_path)
@@ -61,22 +61,22 @@ class IndexBenchmarkRunner:
         log.info("--- [2/3] Benchmarking Hierarchical Folder Index ---")
         hier = HierarchicalInvertedIndexBuilder(self.hier_dir)
 
-        # 1. Indexing speed
+
         start = time.perf_counter()
         hier.process_books(books)
         hier.save()
         index_time = time.perf_counter() - start
         terms_count = hier.get_number_of_terms()
 
-        # 2. Disk usage
+
         disk_bytes = self._get_dir_size(self.hier_dir)
         disk_kb = disk_bytes / 1024
         file_count = sum(1 for _ in self.hier_dir.rglob("*.txt"))
 
-        # 3. Query performance (lee de disco cada archivo)
+
         avg_query_ms = self._benchmark_queries(hier, SAMPLE_QUERIES)
 
-        # 4. Incremental update
+
         start_update = time.perf_counter()
         hier.process_book(books[0])
         hier.save()
@@ -99,23 +99,21 @@ class IndexBenchmarkRunner:
         try:
             mongo.collection.drop()
             mongo.ensure_index()
-            # 1. Indexing speed
-
 
             start = time.perf_counter()
             mongo.process_books(books)
             index_time = time.perf_counter() - start
             terms_count = mongo.get_number_of_terms()
 
-            # 2. Disk / DB usage
+
             stats = mongo.db.command("collstats", "inverted_index")
             disk_bytes = stats.get("storageSize", stats.get("size", 0))
             disk_kb = disk_bytes / 1024
 
-            # 3. Query performance
+
             avg_query_ms = self._benchmark_queries(mongo, SAMPLE_QUERIES)
 
-            # 4. Incremental update
+
             start_update = time.perf_counter()
             mongo.process_book(books[0])
             update_ms = (time.perf_counter() - start_update) * 1000
