@@ -2,7 +2,6 @@ from datetime import datetime
 from pathlib import Path
 from Downloader.Control.BookDownloader import BookDownloader
 from Downloader.Control.EventStoreBuilder import EventStoreBuilder
-#from Downloader.Model.Book import Book
 from Downloader.Model.BookEvent import BookEvent
 from Downloader.Model.DatalakeLayout import DatalakeLayout
 
