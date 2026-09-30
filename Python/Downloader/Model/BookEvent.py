@@ -6,5 +6,5 @@ class BookEvent:
     hour: str
     ss: str
     book_id: int
-    type: str  # "header" o "body"
+    type: str
     content: str
