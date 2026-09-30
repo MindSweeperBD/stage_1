@@ -2,3 +2,11 @@
 The repository contains the implementation developed for the Stage 1 of the Big Data project 26/27 at the University of Las Palmas de Gran Canaria.
 
 The goal of the project is to build a search engine from zero. This first stage focuses on designing and implementing the data layer, which will prepares and organizes all the books that we will use on the next stages . The dataset used thoughout the project is from **Project Gutenberg**, a digital library of public-domain books.
+
+## Objectives
+The main objective of the stage is to build a data pipeline capable of downloading, processing, indexing and storing book data. Our data layer is made up by three main components:
+- The **Datalake** where we store the downloaded and processed content.
+- The **Datamart** that stores structured metadata and inverted indexes, which are used for efficient searches.
+- And the **Control Layer** who coordinates the different stages of the pipeline and keeps track of the processing state.
+
+For an additional objective we evaluate different implementations and storages through benchmarking. It includes implementations in **Python**, **Java** and **C++**, that we will compare to each other.
