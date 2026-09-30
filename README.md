@@ -48,3 +48,12 @@ In other hand for Java, it is necessary have ***Java 21*** and ***Maven***.
 
 At last but no less important, C++ requires ***C++20 compatible compiler***, ***CMake 3.16*** or later, ***SQLite3***, ***ICU***, ***libcurl*** and ***MongoDB C++ drivers*** for the MongoDB implementation.
 
+## Running 
+In order to run the project, apart of having the requirements wrote above, you must understand that each implementation have its own entry points. The correct order to run the project is start with the ***Downloader*** to download and store the books; next the ***Datamart/Indexer*** to process the datalake and extract metadata for create inverted index; then the ***Control Layer*** for coordinate and track the current state; and finally the ***Benchmarks*** to evaluate the implementations and storage strategies.
+
+##
+
+All this information is more explanied on the report document, where you can find more explanations and results of our implementations of the project.
+
+
+Developed by MindSweeperBD as part of the Big Data course at the University of Las Palmas de Gran Canaria (ULPGC).
